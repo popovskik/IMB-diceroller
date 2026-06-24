@@ -1,21 +1,56 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Dice from './components/Dice.jsx'
+import Lasso from './components/Lasso.jsx'
 import Weather from './components/Weather.jsx'
 import './App.css'
 
-const ROLL_MS = 900
+const randDie = () => 1 + Math.floor(Math.random() * 6)
+
+// Timing (ms)
+const WINDING_MS  = 320   // lasso spins up
+const THROW_MS    = 550   // lasso-throw CSS animation duration
+const IMPACT_MS   = WINDING_MS + Math.round(THROW_MS * 0.55) // when lasso hits dice
+const ROLL_MS     = 950   // dice tumble duration (matches CSS)
+const SETTLE_MS   = 180   // dice settle into face
 
 export default function App() {
-  const [dice, setDice] = useState([1, 1])
-  const [spin, setSpin] = useState(0)
-  const [rolling, setRolling] = useState(false)
+  const [phase, setPhase] = useState('idle')
+  // phase: idle | winding | throwing | rolling | landed
 
-  const roll = () => {
-    if (rolling) return
-    setDice([1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)])
-    setSpin((s) => s + 1) // each throw adds a full forward turn -> the dice "revolve"
-    setRolling(true)
-    setTimeout(() => setRolling(false), ROLL_MS)
+  const [dice, setDice] = useState([1, 1])
+  const [impact, setImpact] = useState(false)
+  const timers = useRef([])
+
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout)
+    timers.current = []
+  }
+  const later = (fn, ms) => {
+    const id = setTimeout(fn, ms)
+    timers.current.push(id)
+    return id
+  }
+
+  const handleThrow = () => {
+    if (phase === 'winding' || phase === 'throwing' || phase === 'rolling') return
+    clearTimers()
+
+    setPhase('winding')
+    setImpact(false)
+
+    // Start the throw animation after winding
+    later(() => setPhase('throwing'), WINDING_MS)
+
+    // Lasso hits dice → roll
+    later(() => {
+      setDice([randDie(), randDie()])
+      setPhase('rolling')
+      setImpact(true)
+      later(() => setImpact(false), 250)
+    }, IMPACT_MS)
+
+    // Dice settle → landed
+    later(() => setPhase('landed'), IMPACT_MS + ROLL_MS + SETTLE_MS)
   }
 
   const [d1, d2] = dice
@@ -29,13 +64,14 @@ export default function App() {
 
       <section className="card">
         <h2>Throw the dice</h2>
+
         <div className="dice-tray">
-          <Dice value={d1} spin={spin} rolling={rolling} />
-          <Dice value={d2} spin={spin} rolling={rolling} />
+          <Dice value={d1} rolling={phase === 'rolling'} impact={impact} />
+          <Dice value={d2} rolling={phase === 'rolling'} impact={impact} />
         </div>
 
         <div className="dice-results" aria-live="polite">
-          {rolling ? (
+          {phase === 'rolling' ? (
             <span className="rolling-text">Rolling…</span>
           ) : (
             <>
@@ -46,9 +82,9 @@ export default function App() {
           )}
         </div>
 
-        <button className="btn" onClick={roll} disabled={rolling}>
-          {spin === 0 ? 'Throw dice' : 'Throw again'}
-        </button>
+        <div className="lasso-area">
+          <Lasso phase={phase} onClick={handleThrow} />
+        </div>
       </section>
 
       <section className="card">

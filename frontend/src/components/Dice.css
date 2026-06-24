@@ -1,11 +1,12 @@
 :root {
-  --die-size: 84px;
+  --die-size: 90px;
+  --die-half: 45px;
 }
 
 .dice-scene {
   width: var(--die-size);
   height: var(--die-size);
-  perspective: 600px;
+  perspective: 700px;
 }
 
 .dice-cube {
@@ -13,26 +14,55 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  /* The transition is what produces the smooth "revolving then landing" motion. */
-  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.25, 1);
-}
-.dice-cube.rolling {
-  /* Faster, snappier easing while mid-air. */
-  transition: transform 0.9s ease-out;
 }
 
+/* Smooth settle onto the correct face after tumble ends */
+.dice-cube.settled {
+  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+/* Multi-axis chaotic tumble — ends at X:720 Y:720 = identity (0,0) */
+.dice-cube.tumbling {
+  animation: tumble 0.95s cubic-bezier(0.25, 0.1, 0.3, 1) forwards;
+  transition: none;
+}
+
+@keyframes tumble {
+  0%   { transform: rotateX(0deg)   rotateY(0deg)   rotateZ(0deg); }
+  12%  { transform: rotateX(140deg) rotateY(80deg)  rotateZ(55deg); }
+  27%  { transform: rotateX(210deg) rotateY(230deg) rotateZ(120deg); }
+  42%  { transform: rotateX(380deg) rotateY(160deg) rotateZ(200deg); }
+  58%  { transform: rotateX(480deg) rotateY(400deg) rotateZ(255deg); }
+  73%  { transform: rotateX(590deg) rotateY(530deg) rotateZ(310deg); }
+  88%  { transform: rotateX(670deg) rotateY(650deg) rotateZ(345deg); }
+  100% { transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg); }
+}
+
+/* Brief glow flash when lasso makes impact */
+.dice-cube.impact {
+  animation: dice-impact 0.25s ease-out;
+}
+@keyframes dice-impact {
+  0%   { filter: brightness(1); }
+  40%  { filter: brightness(2.5) drop-shadow(0 0 14px #fff); }
+  100% { filter: brightness(1); }
+}
+
+/* ---- Faces ---- */
 .dice-face {
   position: absolute;
   width: var(--die-size);
   height: var(--die-size);
-  background: linear-gradient(145deg, #f8fafc, #cbd5e1);
-  border-radius: 14px;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(145deg, #f8fafc, #d1d8e0);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 8px rgba(0,0,0,0.2),
+    0 2px 6px rgba(0,0,0,0.35);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  padding: 12px;
-  gap: 4px;
+  padding: 13px;
+  gap: 3px;
 }
 
 .pip {
@@ -43,15 +73,15 @@
 }
 .pip.on {
   background: radial-gradient(circle at 35% 35%, #475569, #0f172a);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  width: 14px;
-  height: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  width: 13px;
+  height: 13px;
 }
 
-/* Position the six faces of the cube. translateZ = half the die size (42px). */
-.face-1 { transform: rotateY(0deg)    translateZ(42px); }
-.face-2 { transform: rotateY(180deg)  translateZ(42px); }
-.face-3 { transform: rotateY(90deg)   translateZ(42px); }
-.face-4 { transform: rotateY(-90deg)  translateZ(42px); }
-.face-5 { transform: rotateX(90deg)   translateZ(42px); }
-.face-6 { transform: rotateX(-90deg)  translateZ(42px); }
+/* Face positions: translateZ = half die size */
+.face-1 { transform: rotateY(0deg)    translateZ(var(--die-half)); }
+.face-2 { transform: rotateY(180deg)  translateZ(var(--die-half)); }
+.face-3 { transform: rotateY(90deg)   translateZ(var(--die-half)); }
+.face-4 { transform: rotateY(-90deg)  translateZ(var(--die-half)); }
+.face-5 { transform: rotateX(90deg)   translateZ(var(--die-half)); }
+.face-6 { transform: rotateX(-90deg)  translateZ(var(--die-half)); }

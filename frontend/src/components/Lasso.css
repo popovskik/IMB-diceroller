@@ -1,0 +1,127 @@
+/* ─── Wrapper ─── */
+.lasso-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+  user-select: none;
+  outline: none;
+}
+.lasso-wrapper.phase-idle,
+.lasso-wrapper.phase-landed {
+  cursor: pointer;
+}
+
+/* ─── SVG sizing ─── */
+.lasso-svg {
+  /* viewBox 160×200 → display 120×150 */
+  width: 120px;
+  height: 150px;
+  overflow: visible;
+}
+
+/* ─── Idle / landed: soft golden pulse ─── */
+.lasso-wrapper.phase-idle .lasso-svg,
+.lasso-wrapper.phase-landed .lasso-svg {
+  animation: lasso-pulse 2.6s ease-in-out infinite;
+}
+@keyframes lasso-pulse {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(212,160,64,0.2)); }
+  50%       { filter: drop-shadow(0 0 12px rgba(212,160,64,0.55)); }
+}
+
+/* Hover: stronger glow, drop the pulse */
+.lasso-wrapper.phase-idle:hover .lasso-svg,
+.lasso-wrapper.phase-landed:hover .lasso-svg {
+  animation: none;
+  filter:
+    drop-shadow(0 0 8px rgba(212,160,64,0.7))
+    drop-shadow(0 0 20px rgba(212,160,64,0.35));
+}
+
+/* ─── Label ─── */
+.lasso-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  height: 1.1em;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+.lasso-wrapper.phase-throwing .lasso-label,
+.lasso-wrapper.phase-rolling .lasso-label {
+  opacity: 0;
+}
+
+/* ─── Loop group: always spinning ─── */
+/*
+  fill-box bounding box (approx): x 30–130, y 43–111
+  Ellipse center cx=80, cy=65 →
+    origin-x = (80-30)/100 = 50%
+    origin-y = (65-43)/(111-43) = 22/68 ≈ 32%
+*/
+.loop-group {
+  transform-box: fill-box;
+  transform-origin: 50% 32%;
+  animation: loop-spin 1.6s linear infinite;
+}
+@keyframes loop-spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+/* Winding: spin much faster */
+.phase-winding .loop-group {
+  animation-duration: 0.2s;
+}
+
+/* Freeze loop while airborne */
+.phase-throwing .loop-group,
+.phase-rolling .loop-group {
+  animation-play-state: paused;
+}
+
+/* ─── Rope tail sway (idle only) ─── */
+.rope-tail {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: rope-sway 3s ease-in-out infinite;
+}
+@keyframes rope-sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50%      { transform: rotate(5deg); }
+}
+.phase-throwing .rope-tail,
+.phase-rolling .rope-tail {
+  animation: none;
+}
+
+/* ─── Throw: windup recoil → arc up → snap back ─── */
+.phase-throwing .lasso-svg {
+  animation: lasso-throw 0.55s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  /* override pulse/hover filter */
+  filter: none;
+}
+
+@keyframes lasso-throw {
+  /*  0–12 %  windup: lasso dips back-right before the release */
+  0%   { transform: translateY(0)      translateX(0)    rotate(0deg)   scale(1);    opacity: 1; }
+  12%  { transform: translateY(14px)   translateX(10px) rotate(10deg)  scale(1.05); opacity: 1; }
+  /* 12–60 %  arc up toward the dice */
+  60%  { transform: translateY(-170px) translateX(-8px) rotate(-24deg) scale(0.62); opacity: 0.85; }
+  /* 60–74 %  disappear overhead */
+  74%  { transform: translateY(-230px) translateX(-14px) rotate(-30deg) scale(0.28); opacity: 0; }
+  /* 75 %  instant reset (invisible) */
+  75%  { transform: translateY(0)      translateX(0)    rotate(0deg)   scale(1);    opacity: 0; }
+  /* fade back in */
+  100% { transform: translateY(0)      translateX(0)    rotate(0deg)   scale(1);    opacity: 1; }
+}
+
+/* While dice are rolling, lasso waits dimly */
+.phase-rolling .lasso-svg {
+  opacity: 0.18;
+  transition: opacity 0.25s ease;
+}

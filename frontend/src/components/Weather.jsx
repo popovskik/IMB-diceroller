@@ -18,8 +18,18 @@ export default function Weather() {
     setError('')
     setData(null)
     try {
-      const res = await fetch(`${API_BASE}/api/weather?city=${encodeURIComponent(q)}`)
-      const json = await res.json()
+      let res
+      try {
+        res = await fetch(`${API_BASE}/api/weather?city=${encodeURIComponent(q)}`)
+      } catch {
+        throw new Error('Could not reach the server. Is the backend running?')
+      }
+      let json
+      try {
+        json = await res.json()
+      } catch {
+        throw new Error(`Server returned an unexpected response (${res.status})`)
+      }
       if (!res.ok) {
         // Vercel function uses {error}, FastAPI uses {detail}.
         throw new Error(json.error || json.detail || `Request failed (${res.status})`)
