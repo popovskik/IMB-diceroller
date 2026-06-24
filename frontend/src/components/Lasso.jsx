@@ -24,7 +24,24 @@ export default function Lasso({ phase, onClick }) {
             <stop offset="0%" stopColor="#f0c870" />
             <stop offset="100%" stopColor="#7a5010" />
           </radialGradient>
+          <radialGradient id="tip-flash" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor="#ffffff" />
+            <stop offset="35%"  stopColor="#ffd060" />
+            <stop offset="100%" stopColor="rgba(255,160,0,0)" />
+          </radialGradient>
         </defs>
+
+        {/* Whip rope — extends rightward on throw */}
+        <path
+          className="whip-rope"
+          d="M 80 111 C 125 96 158 118 202 107 C 228 99 244 115 262 107"
+          stroke="#c8924a"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* Crack flash at whip tip */}
+        <ellipse className="whip-tip" cx="262" cy="107" rx="14" ry="9" fill="url(#tip-flash)" />
 
         {/* === Coiled handle — 3 stacked rings === */}
         <ellipse cx="80" cy="186" rx="20"  ry="6.5" stroke="#5a3a08" strokeWidth="4"   fill="none" />

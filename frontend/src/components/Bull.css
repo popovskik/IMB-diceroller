@@ -1,0 +1,69 @@
+/* ─── Bull wrapper: fills the stage absolutely ─── */
+.bull-track {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;   /* above dice (z-index: 1) so the bull runs OVER them */
+}
+
+/* ─── The figure: centered in stage by default ─── */
+.bull-figure {
+  position: absolute;
+  bottom: 4px;
+  left: calc(50% - 100px);
+  width: 200px;
+  height: 120px;
+  transform: translateX(0);
+}
+
+.bull-svg {
+  width: 200px;
+  height: 120px;
+  display: block;
+}
+
+/* ─── Idle + winding: gentle breathing sway ─── */
+.phase-idle .bull-svg,
+.phase-landed .bull-svg {
+  animation: bull-breathe 3.2s ease-in-out infinite;
+}
+@keyframes bull-breathe {
+  0%, 100% { transform: rotate(0deg) scaleY(1); }
+  50%       { transform: rotate(-1.5deg) scaleY(1.02); }
+}
+
+/* Winding: pawing the ground — slight forward lean */
+.phase-winding .bull-svg {
+  animation: bull-paw 0.35s ease-in-out infinite;
+}
+@keyframes bull-paw {
+  0%, 100% { transform: translateX(0)   rotate(0deg); }
+  50%       { transform: translateX(4px) rotate(-3deg); }
+}
+
+/* Throwing: bull tenses — no animation, just brace position */
+.phase-throwing .bull-svg {
+  transform: rotate(-4deg);
+}
+
+/* ─── Charge: figure slides right, SVG gallops ─── */
+.phase-bull_running .bull-figure,
+.phase-rolling .bull-figure {
+  animation: bull-charge 1.3s cubic-bezier(0.1, 0.5, 0.7, 1) forwards;
+}
+@keyframes bull-charge {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(820px); }
+}
+
+.phase-bull_running .bull-svg,
+.phase-rolling .bull-svg {
+  animation: bull-gallop 0.24s ease-in-out infinite;
+}
+@keyframes bull-gallop {
+  0%, 100% { transform: translateY(0)    rotate(-1deg); }
+  50%       { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* ─── Landed: bull is off-screen (no reset needed) ─── */

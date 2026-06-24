@@ -1,56 +1,49 @@
 import { useState, useRef } from 'react'
 import Dice from './components/Dice.jsx'
 import Lasso from './components/Lasso.jsx'
+import Bull from './components/Bull.jsx'
 import Weather from './components/Weather.jsx'
 import './App.css'
 
 const randDie = () => 1 + Math.floor(Math.random() * 6)
 
 // Timing (ms)
-const WINDING_MS  = 320   // lasso spins up
-const THROW_MS    = 550   // lasso-throw CSS animation duration
-const IMPACT_MS   = WINDING_MS + Math.round(THROW_MS * 0.55) // when lasso hits dice
-const ROLL_MS     = 950   // dice tumble duration (matches CSS)
-const SETTLE_MS   = 180   // dice settle into face
+const WINDING_MS   = 320
+const THROW_MS     = 380
+// Bull starts running when the lasso visually reaches it (~60% through throw)
+const BULL_START   = WINDING_MS + Math.round(THROW_MS * 0.58)  // ~540 ms
+// Bull reaches the dice area ~420 ms after it starts charging
+const DICE_HIT_MS  = BULL_START + 420                           // ~960 ms
+const ROLL_MS      = 950
+const SETTLE_MS    = 180
 
 export default function App() {
+  // phase: idle | winding | throwing | bull_running | rolling | landed
   const [phase, setPhase] = useState('idle')
-  // phase: idle | winding | throwing | rolling | landed
-
-  const [dice, setDice] = useState([1, 1])
+  const [dice, setDice]   = useState([1, 1])
   const [impact, setImpact] = useState(false)
   const timers = useRef([])
 
-  const clearTimers = () => {
-    timers.current.forEach(clearTimeout)
-    timers.current = []
-  }
-  const later = (fn, ms) => {
-    const id = setTimeout(fn, ms)
-    timers.current.push(id)
-    return id
-  }
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = [] }
+  const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.current.push(id); return id }
 
   const handleThrow = () => {
-    if (phase === 'winding' || phase === 'throwing' || phase === 'rolling') return
+    if (['winding', 'throwing', 'bull_running', 'rolling'].includes(phase)) return
     clearTimers()
-
     setPhase('winding')
     setImpact(false)
 
-    // Start the throw animation after winding
-    later(() => setPhase('throwing'), WINDING_MS)
+    later(() => setPhase('throwing'),    WINDING_MS)
+    later(() => setPhase('bull_running'), BULL_START)
 
-    // Lasso hits dice → roll
     later(() => {
       setDice([randDie(), randDie()])
       setPhase('rolling')
       setImpact(true)
       later(() => setImpact(false), 250)
-    }, IMPACT_MS)
+    }, DICE_HIT_MS)
 
-    // Dice settle → landed
-    later(() => setPhase('landed'), IMPACT_MS + ROLL_MS + SETTLE_MS)
+    later(() => setPhase('landed'), DICE_HIT_MS + ROLL_MS + SETTLE_MS)
   }
 
   const [d1, d2] = dice
@@ -65,9 +58,19 @@ export default function App() {
       <section className="card">
         <h2>Throw the dice</h2>
 
-        <div className="dice-tray">
-          <Dice value={d1} rolling={phase === 'rolling'} impact={impact} />
-          <Dice value={d2} rolling={phase === 'rolling'} impact={impact} />
+        {/* Horizontal stage: lasso — bull runs through — dice */}
+        <div className="stage">
+          <div className="stage-lasso">
+            <Lasso phase={phase} onClick={handleThrow} />
+          </div>
+
+          {/* Bull is absolutely positioned inside the stage */}
+          <Bull phase={phase} />
+
+          <div className="stage-dice">
+            <Dice value={d1} rolling={phase === 'rolling'} impact={impact} />
+            <Dice value={d2} rolling={phase === 'rolling'} impact={impact} />
+          </div>
         </div>
 
         <div className="dice-results" aria-live="polite">
@@ -80,10 +83,6 @@ export default function App() {
               <span className="chip sum">Sum: <b>{d1 + d2}</b></span>
             </>
           )}
-        </div>
-
-        <div className="lasso-area">
-          <Lasso phase={phase} onClick={handleThrow} />
         </div>
       </section>
 
