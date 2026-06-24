@@ -1,0 +1,57 @@
+:root {
+  --die-size: 84px;
+}
+
+.dice-scene {
+  width: var(--die-size);
+  height: var(--die-size);
+  perspective: 600px;
+}
+
+.dice-cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* The transition is what produces the smooth "revolving then landing" motion. */
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+.dice-cube.rolling {
+  /* Faster, snappier easing while mid-air. */
+  transition: transform 0.9s ease-out;
+}
+
+.dice-face {
+  position: absolute;
+  width: var(--die-size);
+  height: var(--die-size);
+  background: linear-gradient(145deg, #f8fafc, #cbd5e1);
+  border-radius: 14px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 12px;
+  gap: 4px;
+}
+
+.pip {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  place-self: center;
+}
+.pip.on {
+  background: radial-gradient(circle at 35% 35%, #475569, #0f172a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  width: 14px;
+  height: 14px;
+}
+
+/* Position the six faces of the cube. translateZ = half the die size (42px). */
+.face-1 { transform: rotateY(0deg)    translateZ(42px); }
+.face-2 { transform: rotateY(180deg)  translateZ(42px); }
+.face-3 { transform: rotateY(90deg)   translateZ(42px); }
+.face-4 { transform: rotateY(-90deg)  translateZ(42px); }
+.face-5 { transform: rotateX(90deg)   translateZ(42px); }
+.face-6 { transform: rotateX(-90deg)  translateZ(42px); }

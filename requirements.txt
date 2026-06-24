@@ -1,0 +1,3 @@
+# Root requirements.txt — used by VERCEL's Python serverless functions (api/*.py).
+# Keep this minimal. Do NOT add streamlit here (it would bloat the function bundle).
+requests==2.32.3

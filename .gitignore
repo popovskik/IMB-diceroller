@@ -1,0 +1,31 @@
+# Node / frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Secrets & local env (NEVER commit real keys)
+.env
+.env.local
+*.env
+!*.env.example
+backend/.env
+streamlit_app/.streamlit/secrets.toml
+
+# Vercel
+.vercel/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
