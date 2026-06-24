@@ -16,7 +16,49 @@ import requests
 import streamlit as st
 
 OWM_URL = "https://api.openweathermap.org/data/2.5/weather"
-DICE_UNICODE = {1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅"}
+
+# 3×3 grid positions (1–9) that have a pip for each face value
+_PIPS = {
+    1: [5],
+    2: [3, 7],
+    3: [3, 5, 7],
+    4: [1, 3, 7, 9],
+    5: [1, 3, 5, 7, 9],
+    6: [1, 3, 4, 6, 7, 9],
+}
+
+_DIE_CSS = """
+<style>
+.dice-row { display:flex; gap:32px; justify-content:center; margin:18px 0 6px; }
+.die {
+    width:88px; height:88px;
+    background:linear-gradient(145deg,#f8fafc,#d1d8e0);
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45), inset 0 0 8px rgba(0,0,0,0.15);
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(3,1fr);
+    padding:12px; gap:3px;
+}
+.pip {
+    width:100%; height:100%;
+    border-radius:50%;
+    place-self:center;
+}
+.pip.on {
+    background:radial-gradient(circle at 35% 35%,#475569,#0f172a);
+    box-shadow:0 1px 3px rgba(0,0,0,0.6);
+    width:14px; height:14px;
+}
+</style>
+"""
+
+def _die_html(value: int) -> str:
+    cells = "".join(
+        f'<div class="pip on"></div>' if i in _PIPS[value] else '<div class="pip"></div>'
+        for i in range(1, 10)
+    )
+    return f'<div class="die">{cells}</div>'
 
 st.set_page_config(page_title="MADA Demo — Dice & Weather", page_icon="🎲", layout="centered")
 
@@ -77,28 +119,8 @@ if st.button(label, use_container_width=True):
 
 d1, d2 = st.session_state.dice
 
-# A small CSS spin animation that re-triggers on each rerun (i.e. each throw).
 st.markdown(
-    f"""
-    <style>
-    @keyframes mada-roll {{
-        0%   {{ transform: rotate(0deg)   scale(0.6); opacity: 0.3; }}
-        60%  {{ transform: rotate(540deg) scale(1.15); opacity: 1; }}
-        100% {{ transform: rotate(720deg) scale(1); }}
-    }}
-    .mada-dice {{
-        display: flex; gap: 28px; justify-content: center; margin: 12px 0 4px;
-    }}
-    .mada-die {{
-        font-size: 96px; line-height: 1;
-        animation: mada-roll 0.8s ease-out;
-    }}
-    </style>
-    <div class="mada-dice">
-        <span class="mada-die">{DICE_UNICODE[d1]}</span>
-        <span class="mada-die">{DICE_UNICODE[d2]}</span>
-    </div>
-    """,
+    _DIE_CSS + f'<div class="dice-row">{_die_html(d1)}{_die_html(d2)}</div>',
     unsafe_allow_html=True,
 )
 
